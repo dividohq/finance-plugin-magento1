@@ -10,7 +10,7 @@ if (!function_exists('mb_detect_encoding')) {
 }
 
 // Divido singleton
-require_once(dirname(__FILE__) . '/FinanceProvider/finance_provider.php');
+require_once(dirname(__FILE__) . '/Divido/Divido.php');
 
 // Utilities
 require_once(dirname(__FILE__) . '/Divido/Util.php');

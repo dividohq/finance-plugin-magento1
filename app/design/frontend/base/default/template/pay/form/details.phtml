@@ -1,8 +1,8 @@
 <?php 
 $_code      = $this->getMethodCode();
 $quote      = Mage::getSingleton('checkout/cart')->getQuote();
-$plans      = Mage::helper('finance_provider_pay')->getQuotePlans($quote);
-$planList   = Mage::helper('finance_provider_pay')->plans2list($plans);
+$plans      = Mage::helper('finance_pay')->getQuotePlans($quote);
+$planList   = Mage::helper('finance_pay')->plans2list($plans);
 $grandTotal = $quote->getGrandTotal();
 ?>
 <div id="payment_form_<?php echo $_code ?>" style="display:none;">

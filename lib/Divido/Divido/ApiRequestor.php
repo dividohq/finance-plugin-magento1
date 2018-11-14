@@ -158,7 +158,7 @@ class Divido_ApiRequestor
     case 401:
         throw new Divido_AuthenticationError($msg, $rcode, $rbody, $resp);
     case 402:
-        throw new finance_provider_paymentError($msg, $param, $code, $rcode, $rbody, $resp);
+        throw new finance_paymentError($msg, $param, $code, $rcode, $rbody, $resp);
     default:
         throw new Divido_ApiError($msg, $rcode, $rbody, $resp);
     }

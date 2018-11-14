@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Finance_Pay>
+            <version>1.0.0.0</version>
+        </Finance_Pay>
+    </modules>
+
+    <global>
+        <helpers>
+            <finance_pay>
+                <class>Finance_Pay_Helper</class>
+            </finance_pay>
+        </helpers>
+        <models>
+            <finance_pay>
+                <class>Finance_Pay_Model</class>
+            </finance_pay>
+            <price>
+                <class>Finance_Price_Model</class>
+            </price>
+			<callback>
+				<class>Finance_Pay_Model</class>
+				<resourceModel>callback_resource</resourceModel>
+			</callback>
+			<callback_resource>
+				<class>Finance_Pay_Model_Resource</class>
+				<entities>
+                    <lookup>
+                        <table>finance_lookup</table>
+                    </lookup>
+				</entities>
+			</callback_resource>
+        </models>
+
+        <events>
+            <admin_system_config_changed_section_payment>
+                <observers>
+                    <updateDefaultProductPlans>
+                        <class>Finance_Pay_Model_Observer</class>
+                        <method>updateDefaultProductPlans</method>
+                    </updateDefaultProductPlans>
+                    <clearFinanceProviderCache>
+                        <class>Finance_Pay_Model_Observer</class>
+                        <method>clearCache</method>
+                    </clearFinanceProviderCache>
+                </observers>
+            </admin_system_config_changed_section_payment>
+            <sales_order_save_after>
+                <observers>
+                    <submitFulfilment>
+                        <class>Finance_Pay_Model_Observer</class>
+                        <method>submitFulfilment</method>
+                    </submitFulfilment>
+                </observers>
+            </sales_order_save_after>
+        </events>
+
+        <blocks>
+            <pay>
+                <class>Finance_Pay_Block</class>
+            </pay>
+            <finance_widget>
+                <class>Finance_Widget_Block</class>
+            </finance_widget>
+        </blocks>
+
+        <resources>
+            <finance_pay_setup>
+                <setup>
+                    <module>Finance_Pay</module>
+                    <class>Finance_Pay_Model_Mysql4_Setup</class>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </finance_pay_setup>
+            <pay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </pay_write>
+            <pay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </pay_read>
+        </resources>
+        <sales>
+            <quote>
+                <item>
+                    <product_attributes>
+                        <finance_plan_option />
+                        <finance_plan_selection />
+                    </product_attributes>
+                </item>
+            </quote>
+        </sales>
+
+    </global>
+
+
+
+    <!-- declare default configuration values for this module -->
+    <default>
+        <payment>
+            <pay>
+                <active>1</active>
+                <model>pay/Standard</model>
+                <order_status>processing</order_status>
+                <title>Pay in instalments</title>
+                <debug>0</debug>
+                <order_create_signed>0</order_create_signed>
+                <fulfilment_update>0</fulfilment_update>
+                <countries_allowed>GB</countries_allowed>
+                <catalog_product_calculator_type>popup_widget</catalog_product_calculator_type>
+            </pay>
+        </payment>
+    </default>
+
+    <adminhtml>
+        <layout>
+            <updates>
+                <finance_pay>
+                    <file>finance_pay.xml</file>
+                </finance_pay>
+            </updates>
+        </layout>
+    </adminhtml>
+
+    <frontend>
+        <routers>
+            <pay>
+                <use>standard</use>
+                <args>
+                    <module>Finance_Pay</module>
+                    <frontName>pay</frontName>
+                </args>
+            </pay>
+        </routers>
+        <layout>
+            <updates>
+                <finance_pay>
+                    <file>finance.xml</file>
+                </finance_pay>
+            </updates>
+        </layout>
+    </frontend>
+</config>

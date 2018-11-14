@@ -1,6 +1,6 @@
 <?php
 
-class finance_provider_paymentError extends Divido_Error
+class finance_paymentError extends Divido_Error
 {
   public function __construct($message, $param, $code, $httpStatus, 
       $httpBody, $jsonBody
