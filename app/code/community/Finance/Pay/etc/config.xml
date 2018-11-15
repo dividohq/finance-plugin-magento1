@@ -13,9 +13,9 @@
             </finance_pay>
         </helpers>
         <models>
-            <finance_pay>
+            <pay>
                 <class>Finance_Pay_Model</class>
-            </finance_pay>
+            </pay>
             <price>
                 <class>Finance_Price_Model</class>
             </price>
@@ -61,7 +61,7 @@
                 <class>Finance_Pay_Block</class>
             </pay>
             <finance_widget>
-                <class>Finance_Widget_Block</class>
+                <class>Finance_Pay_Widget_Block</class>
             </finance_widget>
         </blocks>
 
@@ -96,10 +96,7 @@
                 </item>
             </quote>
         </sales>
-
     </global>
-
-
 
     <!-- declare default configuration values for this module -->
     <default>
@@ -140,9 +137,9 @@
         </routers>
         <layout>
             <updates>
-                <finance_pay>
+                <pay>
                     <file>finance.xml</file>
-                </finance_pay>
+                </pay>
             </updates>
         </layout>
     </frontend>

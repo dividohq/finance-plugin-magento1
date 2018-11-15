@@ -1,7 +1,7 @@
 <?php
 class Finance_Pay_Block_Widget extends Mage_Core_Block_Template
 {
-    const AUTO_WIDGET_NAME = 'finance_widget_auto';
+    const AUTO_WIDGET_NAME = 'finance_auto';
 
     private
         $active,

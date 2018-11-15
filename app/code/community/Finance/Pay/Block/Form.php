@@ -9,7 +9,7 @@
 /**
  * Payment method form base block
  */
-class Finance_Pay_Block_Form extends Mage_Core_Block_Template
+class Finance_Pay_Block_Form extends Mage_Payment_Block_Form
 {
     /**
      * Retrieve payment method model

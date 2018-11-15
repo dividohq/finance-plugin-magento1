@@ -7,7 +7,6 @@
         </Finance_Pay>
         <depends>
             <Mage_Payment />
-            <Mage_Adminhtml />
         </depends>
     </modules>
 </config>

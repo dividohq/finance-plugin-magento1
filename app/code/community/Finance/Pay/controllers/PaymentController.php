@@ -4,7 +4,7 @@ require_once(Mage::getBaseDir('lib') . '/Divido/Divido.php');
 class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 {
 
-        /**
+    /**
      * Checkout types: Checkout as Guest, Register, Logged In Customer
      */
     const METHOD_GUEST    = 'guest';

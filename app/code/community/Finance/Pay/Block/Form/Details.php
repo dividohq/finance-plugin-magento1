@@ -78,4 +78,5 @@ class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
         return $this->getMethod()->getConfigData('logo');
     }
     
+    
 }
