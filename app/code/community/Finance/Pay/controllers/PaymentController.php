@@ -95,7 +95,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $checkout_type      = $quote_session->getCheckoutMethod();
 
         $totals = $quote_session->getTotals();
-        $grand_total = $this->convertToPence($totals['grand_total']->getValue());
+        $grand_total = $totals['grand_total']->getValue();
 
         $existing_lookup =  $this->getLookup($quote_id);
         $existing_lookup_id = $existing_lookup->getId();
