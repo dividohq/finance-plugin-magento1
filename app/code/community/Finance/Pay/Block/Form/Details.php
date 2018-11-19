@@ -24,8 +24,7 @@
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 //TODO - Replace with new lib
-require_once(Mage::getBaseDir('lib') . '/Divido/Divido.php');
-
+//require_once(Mage::getBaseDir('lib') . '/vendor/autoload.php');
 class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
 {
     protected function _construct()
@@ -47,8 +46,11 @@ class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
     /*
      * Set Merchant for divido using api key
      */
+    /*
+    //TODO REMOVE NOT NEEDED?
     protected function _setMerchant()
     {
+        $sdk = new \Divido\MerchantSDK\Client('test_cfabc123.querty098765merchantsdk12345', \Divido\MerchantSDK\Environment::SANDBOX);
         Divido::setMerchant($this->getApiKey());
         if ($this->getMethod()->getConfigData('sandbox')) {
                 Divido::setSandboxMode(true);
@@ -64,10 +66,11 @@ class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
 
         return $response;
     }
+    */
     
     protected function getCurrencySymbol()
     {
-        $currency_code   = Mage::app()->getStore()->getCurrentCurrencyCode(); 
+        $currency_code   = Mage::app()->getStore()->getCurrentCurrencyCode();
         $currency_symbol = Mage::app()->getLocale()->currency( $currency_code )->getSymbol();
         
         return $currency_symbol;
@@ -77,6 +80,4 @@ class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
     {
         return $this->getMethod()->getConfigData('logo');
     }
-    
-    
 }

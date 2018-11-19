@@ -1,6 +1,6 @@
 <?php
 
-require_once(Mage::getBaseDir('lib') . '/Divido/Divido.php');
+require_once(Mage::getBaseDir('lib') . '/vendor/autoload.php');
 
 class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 {
@@ -49,21 +49,42 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
             return $plans;
         }
 
-        Divido::setMerchant($apiKey);
-        $parameters = array('merchant' => $apiKey);
-        $response   = Divido_Finances::all($parameters);
+        $sdk = new \Divido\MerchantSDK\Client($apiKey, \Divido\MerchantSDK\Environment::SANDBOX);
+        $requestOptions = (new \Divido\MerchantSDK\Handlers\ApiRequestOptions());
+        $plans = $sdk->getAllPlans($requestOptions);
+        $finances = $plans->getResources();
 
+        //TODO - Rework no status returned from call so catch if fails
+        /*
         if ($response->status !== 'ok') {
             Mage::log('Could not get financing plans.', null, 'finance.log');
             return array();
         }
+        */
+        $cache->save(serialize($finances), $cacheKey, array('finance_cache'), self::CACHE_LIFETIME_PLANS);
 
-        $plans = $response->finances;
-
-        $cache->save(serialize($plans), $cacheKey, array('finance_cache'), self::CACHE_LIFETIME_PLANS);
-
-        return $plans;
+        return $finances;
     }
+
+    public function getSingleApplication($applicationID)
+    {
+        $apiKey = $this->getApiKey();
+
+        $sdk = new \Divido\MerchantSDK\Client($apiKey, \Divido\MerchantSDK\Environment::SANDBOX);
+        $application = $sdk->applications()->getSingleApplication($applicationID);
+
+        return $application;
+    }
+
+    public function getSdk()
+    {
+        $apiKey = $this->getApiKey();
+
+        $sdk = new \Divido\MerchantSDK\Client($apiKey, \Divido\MerchantSDK\Environment::SANDBOX);
+
+        return $sdk;
+    }
+
 
     public function setFulfilled ($applicationId, $shippingMethod = null, $trackingNumbers = null)
     {
@@ -74,6 +95,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
             'trackingNumber' => $trackingNumbers
         );
 
+        //TODO NEW SDK
         Divido::setMerchant($apiKey);
         Divido_Activation::activate($params);
     }
@@ -94,31 +116,15 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $scriptTags = [];
         $key = $this->getCommonApiKey();
+        //TODO - Does this change whitelable?
         $scriptTags[] = '<script>window.dividoKey = "' . $key . '";</script>';
-
+        //TODO - Does this change whitelable?
         $url = 'https://cdn.divido.com/calculator/v2.1/production/js/template.divido.js';
         $scriptTags[] = '<script src="' . $url . '"></script>';
 
         $html = implode("\n", $scriptTags);
 
         return $html;
-    }
-
-    //TODO REWORK WITH NEW JS
-    public function getScriptUrl ()
-    {
-        $apiKey = Mage::getStoreConfig('payment/pay/api_key');
-        if (empty($apiKey)) {
-            return '';
-        }
-
-        $apiKey = Mage::helper('core')->decrypt($apiKey);
-        $keyParts = explode('.', $apiKey);
-        $coreKey = array_shift($keyParts);
-        $jsKey = strtolower($coreKey);
-
-        //return '<script src="//calc.divido.dev/calculator.php"></script>';
-        return "<script src=\"https://cdn.divido.com/calculator/{$jsKey}.js\"></script>";
     }
 
     public function isActiveGlobal ()
@@ -254,7 +260,8 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         return hash('sha256', $salt.$quote_id);
     }
 
-    public function createSignature ($payload) {
+    public function createSignature($payload)
+    {
         $secretEnc = Mage::getStoreConfig('payment/pay/secret');
         $secret    = Mage::helper('core')->decrypt($secretEnc);
 
@@ -271,13 +278,13 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     public function getWidgetOption()
     {
         return Mage::getStoreConfig('payment/pay/catalog_product_calculator_type');
-
     }
 
     public function returnWidgetHtml()
     {
         $option = $this->getWidgetOption();
-        if($option=='popup_widget'){
+        if ($option=='popup_widget') {
+            //TODO - Change for WL
             return 'data-divido-mode="popup"';
         }
         return;

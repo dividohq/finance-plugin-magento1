@@ -1,6 +1,7 @@
 <?php
-//TODO Replace with new SDK
-require_once(Mage::getBaseDir('lib') . '/Divido/Divido.php'); 
+
+require_once(Mage::getBaseDir('lib') . '/vendor/autoload.php');
+
 class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 {
 
@@ -63,6 +64,11 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         return $lookup;
     }
 
+    public function convertToPence($value)
+    {
+        return $value = $value * 100;
+    }
+
     /**
      * Start Standard Checkout and dispatching customer to Finance provider
      */
@@ -73,11 +79,13 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $secretEnc      = Mage::getStoreConfig('payment/pay/secret');
         $secret         = Mage::helper('core')->decrypt($secretEnc);
 
-        Divido::setMerchant($apiKey);
+        //Divido::setMerchant($apiKey);
+        //TODO - No Shared Secret in Merchant SDK
+        /*
         if (! empty($sharedSecret)) {
             Divido::setSharedSecret($sharedSecret);
         }
-
+        */
         $quote_cart         = Mage::getModel('checkout/cart')->getQuote();
 
         $checkout_session   = Mage::getSingleton('checkout/session');
@@ -87,23 +95,22 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $checkout_type      = $quote_session->getCheckoutMethod();
 
         $totals = $quote_session->getTotals();
-        $grand_total = $totals['grand_total']->getValue();
-
+        $grand_total = $this->convertToPence($totals['grand_total']->getValue());
 
         $existing_lookup =  $this->getLookup($quote_id);
         $existing_lookup_id = $existing_lookup->getId();
         $existingCRId = $existing_lookup->getData('credit_request_id');
+        //TODO - check to see if application already exists
         if ($existing_lookup_id && $existingCRId) {
 
             $lookupTotalAmount = $existing_lookup->getData('total_order_amount');
             $is_cancelled = $existing_lookup->getCanceled();
             $is_declined = $existing_lookup->getDeclined();
             if ($grand_total == $lookupTotalAmount && !$is_cancelled && !$is_declined) {
-                $financeProviderApi = new Divido_ApiRequestor();
 
                 try {
-                    $result = $financeProviderApi->request('GET', '/v1/applications', 'id=' . $existingCRId);
-                    $result = $result[0];
+                    $application = Mage::helper('finance_pay')->getSingleApplication($existingCRId);
+                    //var_dump($application);
                     if ($result['status'] == 'ok' && !empty($result['record'])) {
                         $record = $result['record'];
                         if (!empty($record['url']) && !in_array($record['status'], array('CANCELED', 'DECLINED'))) {
@@ -111,20 +118,19 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                             return;
                         }
                     }
-                } catch (Exception $e) {
-                    Mage::log($e->getMessage() , Zend_Log::ERROR, 'finance_plugin.log', true);
-                }
+                } catch (Excetption $e) {
+                    Mage::log($e->getMessage() , Zend_Log::ERROR, 'finance.log', true);
+                 }
             }
 
             $existing_lookup->setInvalidatedAt(date(DATE_ATOM));
             $existing_lookup->save();
             $existing_lookup_id = null;
- 
         }
         //TODO Do these values need to change
         $deposit_percentage  = $this->getRequest()->getParam('divido_deposit') / 100;
         //TODO Do these need to change
-        $finance  = $this->getRequest()->getParam('divido_finance');
+        $finance  = $this->getRequest()->getParam('divido_plan');
         $language = strtoupper(substr(Mage::getStoreConfig('general/locale/code', Mage::app()->getStore()->getId()),0,2));
         $currency = Mage::app()->getStore()->getCurrentCurrencyCode();
 
@@ -134,15 +140,14 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $billAddr   = $quote_session->getBillingAddress();
         $billing    = $billAddr->getData();
 
-        $addressStreet = str_replace("\n"," ",$billing['street']);
+        $addressStreet = str_replace("\n", " ", $billing['street']);
         $addressPostcode = $billing['postcode'];
         $addressCity     = $billing['city'];
-        $addressText     = implode(' ' , array($addressStreet,$addressCity,$addressPostcode));
+        $addressText     = implode(' ', array($addressStreet,$addressCity,$addressPostcode));
 
-        $shippingAddressStreet   = str_replace("\n"," ", $shipping['street']);
+        $shippingAddressStreet   = str_replace("\n", " ", $shipping['street']);
         $shippingAddressPostcode = $shipping['postcode'];
         $shippingAddressCity     = $shipping['city'];
-        
         
         $postcode   = $shipping['postcode'];
         $telephone  = $shipping['telephone'];
@@ -166,9 +171,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
             $products[] = array(
                 "type"     => "product",
-                "text"     => $item->getName(),
+                "name"     => $item->getName(),
                 "quantity" => $item_qty,
-                "value"    => $item_value,
+                "price"    => (float)$this->convertToPence($item_value),
             );
         }
 
@@ -179,9 +184,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
             $products[] = array(
                 'type' => 'product',
-                'text' => $total->getTitle(),
+                'name' => $total->getTitle(),
                 'quantity' => 1,
-                'value' => $total->getValue(),
+                'price' => (float)$this->convertToPence($total->getValue()),
             );
         }
 
@@ -197,9 +202,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'buildingNumber'    => '',
             'buildingName'      => '',
             'town'              => $shippingAddressCity,
-            'flat'              => '',
         );
-
 
         $address = array(
             'postcode'          => $addressPostcode,
@@ -208,22 +211,24 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'buildingNumber'    => '',
             'buildingName'      => '',
             'town'              => $addressCity,
-            'flat'              => '',
             'text'              => $addressText,
         );
 
+        //TODO - figure out how to send multiple addresses and get populated correctly
+        $addresses = array(
+            'default'           => $address,
+            'shippingAddress'   => $shippingAddress
+        );
+        
         $customer = array(
             'title'             => '',
-            'first_name'        => $firstname,
-            'middle_name'       => $middlename,
-            'last_name'         => $lastname,
-            'country'           => $country,
-            'postcode'          => $postcode,
+            'firstName'        => $firstname,
+            'middleName'       => $middlename,
+            'lastName'         => $lastname,
             'email'             => $email,
-            'mobile_number'     => '',
-            'phone_number'      => $telephone,
-            'shippingAddress'   => $shippingAddress,
-            'address'           => $address
+            'phoneNumber'      => $telephone,
+            'addresses'         => array($shippingAddress)
+
         );
                         
         $metadata = array(
@@ -231,36 +236,40 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'quote_hash' => $quote_hash,
         );
 
-        $request_data = array(
-            'merchant'     => $apiKey,
-            'deposit'      => $deposit,
-            'finance'      => $finance,
-            'country'      => $country,
-            'language'     => $language,
-            'currency'     => $currency,
-            'metadata'     => $metadata,
-            'customer'     => $customer,
-            'products'     => $products,
-            'response_url' => Mage::getUrl('pay/payment/webhook', array('_secure'=>true)),
-            'checkout_url' => Mage::helper('checkout/url')->getCheckoutUrl(),
-            'redirect_url' => Mage::getUrl('pay/payment/return', array('quote_id' => $quote_id)),
-        );
+        $sdk = Mage::helper('finance_pay')->getSdk();
+        // Create an appication model with the application data.
+        $application = (new \Divido\MerchantSDK\Models\Application())
+        ->withCountryId($country)
+        ->withCurrencyId($currency)
+        ->withLanguageId(strtolower($language))
+        ->withFinancePlanId($finance)
+        ->withApplicants([$customer])
+        ->withOrderItems($products)
+        ->withDepositPercentage($deposit)
+        ->withFinalisationRequired(false)
+        ->withUrls([
+            'merchant_redirect_url' => Mage::getUrl('pay/payment/return', array('quote_id' => $quote_id)),
+            'merchant_checkout_url' => Mage::helper('checkout/url')->getCheckoutUrl(),
+            'merchant_response_url' => Mage::getUrl('pay/payment/webhook', array('_secure'=>true)),
+        ])
+        ->withMetadata($metadata);
 
         if (Mage::getStoreConfig('payment/pay/debug')) {
-            Mage::log('Request: ' . json_encode($request_data), Zend_Log::DEBUG, 'finance.log', true);
+            Mage::log('Request: ' . json_encode($application), Zend_Log::DEBUG, 'finance.log', true);
         }
-
-        $response = Divido_CreditRequest::create($request_data);
+        $response = $sdk->applications()->createApplication($application);
+        $applicationResponseBody = $response->getBody()->getContents();
 
         if (Mage::getStoreConfig('payment/pay/debug')) {
-            Mage::log('Response: ' . $response->__toJSON(), Zend_Log::DEBUG, 'finance.log', true);
+            Mage::log('Response: ' . serialize($applicationResponseBody), Zend_Log::DEBUG, 'finance.log', true);
         }
-
-        if ($response->status == 'ok') {
+        $decode = json_decode($applicationResponseBody);
+        //TODO - Re add error checking
+        if (isset($decode->data->id)) {
             $lookup = Mage::getModel('callback/lookup');
             $lookup->setQuoteId($quote_id);
             $lookup->setSalt($salt);
-            $lookup->setCreditRequestId($response->id);
+            $lookup->setCreditRequestId($decode->data->id);
             $lookup->setDepositAmount($deposit);
             $lookup->setTotalOrderAmount($grand_total);
 
@@ -269,20 +278,19 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             }
             $lookup->setCustomerCheckout($checkout_type);
 
-
             if (Mage::getStoreConfig('payment/pay/debug')) {
                 Mage::log('Lookup: ' . json_encode($lookup->getData()), Zend_Log::DEBUG, 'finance.log', true);
             }
 
             $lookup->save();
-
-            $this->getResponse()->setRedirect($response->url);
+            $this->getResponse()->setRedirect($decode->data->urls->application_url);
             return;
         } else {
-            if ($response->status === 'error') {
-                Mage::getSingleton('checkout/session')->addError($response->error);
+            //TODO - previously checked for error status
+            //if ($response->status === 'error') {
+                Mage::getSingleton('checkout/session')->addError($decode);
                 $this->_redirect('checkout/cart');
-            }
+            //}
         }
     }
 
@@ -299,21 +307,20 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $session->setLastQuoteId($quoteId)->setLastSuccessQuoteId($quoteId);
 
         $i=0;
-        while($i < self::WAIT_TIME) {
+        while ($i < self::WAIT_TIME) {
             $order = Mage::getModel('sales/order')->loadByAttribute('quote_id', $quoteId);
             if ($order->getId()) {
-                if (Mage::getStoreConfig('payment/pay/debug')) {                    
+                if (Mage::getStoreConfig('payment/pay/debug')) {
                     Mage::log('already have order with id ' . $quoteId, Zend_Log::DEBUG, 'finance.log', true);
                 }
                 break;
-            }else { 
-                if (Mage::getStoreConfig('payment/pay/debug')) {                    
+            } else {
+                if (Mage::getStoreConfig('payment/pay/debug')) {
                     Mage::log('order not created waiting: ' . $quoteId, Zend_Log::DEBUG, 'finance.log', true);
-                }        
+                }
                 $i++;
                 sleep(1);
             }
-    
         }
 
         if ($orderId = $order->getId()) {
@@ -335,6 +342,8 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $payload = file_get_contents('php://input');
         $this->debug('Update: ' . $payload);
 
+        //TODO - FIX Missing from SDK cant grab from divido
+        /*
         $secretEnc = Mage::getStoreConfig('payment/pay/secret');
         if (!empty($secretEnc)) {
             $reqSign = $this->getRequest()->getHeader('X-DIVIDO-HMAC-SHA256');
@@ -344,6 +353,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 return $this->respond(false, 'invalid signature', true);
             }
         }
+        */
 
         $data = json_decode($payload);
         $this->quoteId = $data->metadata->quote_id;
@@ -586,7 +596,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $billing    = $quote->getBillingAddress();
         $shipping   = $quote->isVirtual() ? null : $quote->getShippingAddress();
 
-        //$customer = Mage::getModel('customer/customer');
         $customer = $quote->getCustomer();
         /* @var $customer Mage_Customer_Model_Customer */
         $customerBilling = $billing->exportCustomerAddress();
@@ -618,7 +627,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $billing    = $quote->getBillingAddress();
         $shipping   = $quote->isVirtual() ? null : $quote->getShippingAddress();
 
-        //$customer = $this->getCustomerSession()->getCustomer();
         $customer = $quote->getCustomer();
         if (!$billing->getCustomerId() || $billing->getSaveInAddressBook()) {
             $customerBilling = $billing->exportCustomerAddress();
@@ -676,8 +684,8 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         return Mage::getSingleton('customer/session');
     }
 
-
-        /**
+    //TODO Remove?
+    /**
      * Get frontend checkout session object
      *
      * @return Mage_Checkout_Model_Session

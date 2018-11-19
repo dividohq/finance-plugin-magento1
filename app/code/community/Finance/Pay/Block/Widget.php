@@ -13,7 +13,6 @@ class Finance_Pay_Block_Widget extends Mage_Core_Block_Template
     {
         $nameInLayout      = $this->getNameInLayout();
         $widgetIsActivated = Mage::getStoreConfig('payment/pay/product_page_widget');
-
         if ($nameInLayout === self::AUTO_WIDGET_NAME && !$widgetIsActivated) {
             return false;
         }

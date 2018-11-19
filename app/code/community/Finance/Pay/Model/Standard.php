@@ -3,7 +3,7 @@
 /**
 * Our test CC module adapter
 */
-require_once(Mage::getBaseDir('lib') . '/Divido/Divido.php');
+//require_once(Mage::getBaseDir('lib') . '/Divido/Divido.php');
 class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
 {
     /**
@@ -15,10 +15,12 @@ class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
     protected $_formBlockType = 'pay/form_details';
 	public function _construct()
     {
+        /*
         Divido::setMerchant($this->getApiKey());
         if ($this->getMethod()->getConfigData('sandbox')) {
 			Divido::setSandboxMode(true);
         }
+        */
     }
 
 	public function getApiKey()
@@ -31,6 +33,7 @@ class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
 	/*
      * Set Merchant for divido using api key
      */
+    /*
     public function _setMerchant()
     {
         Divido::setMerchant($this->getApiKey());
@@ -45,7 +48,8 @@ class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
 			Divido::setSandboxMode(true);
 		}
     }
-	
+    */
+	/*
 	public function getCampaign()
     {
 		$this->_setMerchant();
@@ -55,6 +59,7 @@ class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
 
         return $response;
     }
+    */
 	
 	protected function getLogo()
     {
@@ -73,17 +78,18 @@ class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
 
     /**
      * Checkout redirect URL getter for onepage checkout (hardcode)
-     * 
+     *
      * @return string
      */
     public function getCheckoutRedirectUrl()
     {
+        //TODO - CHANGE FOR WL
 		$deposit = $_POST['divido_deposit'];
-		$finance = $_POST['divido_finance'];
+		$finance = $_POST['divido_plan'];
 
         $parameters = array(
             'divido_deposit' => $deposit,
-            'divido_finance' => $finance
+            'divido_plan' => $finance
         );
 
         return Mage::getUrl('pay/payment/start', $parameters);
