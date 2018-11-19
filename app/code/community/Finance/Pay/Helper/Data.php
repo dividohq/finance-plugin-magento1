@@ -86,18 +86,24 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
 
-    public function setFulfilled ($applicationId, $shippingMethod = null, $trackingNumbers = null)
+    public function setFulfilled ($applicationId, $shippingMethod = null, $trackingNumbers = null, $orderTotalInPence = null)
     {
         $apiKey = $this->getApiKey();
-        $params = array(
-            'application'    => $applicationId,
-            'deliveryMethod' => $shippingMethod,
-            'trackingNumber' => $trackingNumbers
-        );
 
-        //TODO NEW SDK
-        Divido::setMerchant($apiKey);
-        Divido_Activation::activate($params);
+        $application = (new \Divido\MerchantSDK\Models\Application())
+                ->withId($applicationId);
+            // Create a new application activation model.
+            $applicationActivation = (new \Divido\MerchantSDK\Models\ApplicationActivation())
+                ->withAmount($orderTotalInPence)
+                ->withReference('Magento Order')
+                ->withComment('Automatic activation activated.')
+                ->withDeliveryMethod($shippingMethod)
+                ->withTrackingNumber($trackingNumbers);
+            // Create a new activation for the application.
+            $sdk = $this->getSdk();
+            $response = $sdk->applicationActivations()->createApplicationActivation($application, $applicationActivation);
+            $activationResponseBody = $response->getBody()->getContents();
+
     }
 
 

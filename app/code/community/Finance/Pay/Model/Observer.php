@@ -85,7 +85,9 @@ class Finance_Pay_Model_Observer
             }
             $trackingNumbers = implode(',', $trackingNumbers);
             $applicationId = $lookup->getData('credit_application_id');
-            $helper->setFulfilled($applicationId, $shippingMethod, $trackingNumbers);
+            $orderTotalInPence = $lookup->getData('total_order_amount') * 100;
+
+            $helper->setFulfilled($applicationId, $shippingMethod, $trackingNumbers, $orderTotalInPence);
         }
     }
 }
