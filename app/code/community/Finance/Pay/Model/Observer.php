@@ -22,7 +22,7 @@ class Finance_Pay_Model_Observer
 
         $plan_ids = array();
         foreach ($plans as $plan) {
-            $plan_ids[] = $plan->id;
+            $plan_ids[$plan->id] = $plan->description;
         }
         $plan_list = implode(',', $plan_ids);
 
@@ -49,6 +49,8 @@ class Finance_Pay_Model_Observer
     public function submitFulfilment ($observer)
     {
         $helper = Mage::helper('finance_pay');
+        //Temp Loggin
+        Mage::log('Sbumitting Fulfilment ', Zend_Log::DEBUG, 'finance.log', true);
 
         $order = $observer->getOrder();
         $currentStatus = $order->getData('status');
@@ -86,7 +88,8 @@ class Finance_Pay_Model_Observer
             $trackingNumbers = implode(',', $trackingNumbers);
             $applicationId = $lookup->getData('credit_application_id');
             $orderTotalInPence = $lookup->getData('total_order_amount') * 100;
-
+        //Temp Loggin
+        Mage::log('setting Fulfilment', null, 'finance.log');
             $helper->setFulfilled($applicationId, $shippingMethod, $trackingNumbers, $orderTotalInPence);
         }
     }

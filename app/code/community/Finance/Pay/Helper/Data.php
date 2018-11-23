@@ -88,7 +88,6 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 
     public function setFulfilled ($applicationId, $shippingMethod = null, $trackingNumbers = null, $orderTotalInPence = null)
     {
-        $apiKey = $this->getApiKey();
 
         $application = (new \Divido\MerchantSDK\Models\Application())
                 ->withId($applicationId);
@@ -100,6 +99,8 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
                 ->withDeliveryMethod($shippingMethod)
                 ->withTrackingNumber($trackingNumbers);
             // Create a new activation for the application.
+                    //Temp Loggin
+              Mage::log('Application activateion', null, 'finance.log');
             $sdk = $this->getSdk();
             $response = $sdk->applicationActivations()->createApplicationActivation($application, $applicationActivation);
             $activationResponseBody = $response->getBody()->getContents();

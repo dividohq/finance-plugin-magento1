@@ -5,7 +5,6 @@
             <version>1.0.0.0</version>
         </Finance_Pay>
     </modules>
-
     <global>
         <helpers>
             <finance_pay>
@@ -16,9 +15,6 @@
             <pay>
                 <class>Finance_Pay_Model</class>
             </pay>
-            <price>
-                <class>Finance_Price_Model</class>
-            </price>
 			<callback>
 				<class>Finance_Pay_Model</class>
 				<resourceModel>callback_resource</resourceModel>
@@ -32,7 +28,6 @@
 				</entities>
 			</callback_resource>
         </models>
-
         <events>
             <admin_system_config_changed_section_payment>
                 <observers>
@@ -55,7 +50,6 @@
                 </observers>
             </sales_order_save_after>
         </events>
-
         <blocks>
             <pay>
                 <class>Finance_Pay_Block</class>
@@ -64,7 +58,6 @@
                 <class>Finance_Pay_Widget_Block</class>
             </finance_widget>
         </blocks>
-
         <resources>
             <finance_pay_setup>
                 <setup>
@@ -97,7 +90,6 @@
             </quote>
         </sales>
     </global>
-
     <!-- declare default configuration values for this module -->
     <default>
         <payment>

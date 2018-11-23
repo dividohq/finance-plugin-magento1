@@ -10,11 +10,11 @@ class Finance_Pay_Model_System_Config_Productoptions {
             ),
             array(
                 'value' => 'products_selected',
-                'label' => Mage::helper('adminhtml')->__('Only selected products'),
+                'label' => Mage::helper('adminhtml')->__('Selected products'),
             ),
             array(
                 'value' => 'products_price_treshold',
-                'label' => Mage::helper('adminhtml')->__('All products above a specified price'),
+                'label' => Mage::helper('adminhtml')->__('All products above a defined price'),
             ),
         );
     }
