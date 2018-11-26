@@ -15,7 +15,7 @@ class Finance_Pay_Model_System_Config_Finances {
         foreach($plans as $plan) {
             $planOptions[] = array(
                 'value' => $plan->id,
-                'label' => $plan->text,
+                'label' => $plan->description,
             );
         }
 

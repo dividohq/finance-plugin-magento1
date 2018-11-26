@@ -22,10 +22,9 @@ class Finance_Pay_Model_Observer
 
         $plan_ids = array();
         foreach ($plans as $plan) {
-            $plan_ids[$plan->id] = $plan->description;
+            $plan_ids[] = $plan->id;
         }
         $plan_list = implode(',', $plan_ids);
-
         $data = array(
             'default_value' =>  $plan_list,
         );
