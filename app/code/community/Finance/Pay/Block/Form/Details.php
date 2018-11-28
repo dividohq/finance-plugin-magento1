@@ -29,7 +29,7 @@ class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
     {
         parent::_construct();
         $this->setTemplate('pay/form/details.phtml');
-	}
+    }
 
     /**
      * Retrieve payment configuration object
