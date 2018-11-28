@@ -19,7 +19,6 @@
                         </heading_general>
                             <api_key translate="label">
                                 <label>API Key</label> 
-                                <tooltip>The API-key is provided by your finance provider.</tooltip>
                                 <frontend_type>text</frontend_type>
                                 <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
                                 <show_in_default>1</show_in_default> 

@@ -23,8 +23,6 @@
  * @copyright   Copyright (c) 2014 Magento Inc. (http://www.magentocommerce.com)
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-//TODO - Replace with new lib
-//require_once(Mage::getBaseDir('lib') . '/vendor/autoload.php');
 class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
 {
     protected function _construct()
@@ -42,31 +40,6 @@ class Finance_Pay_Block_Form_Details extends Finance_Pay_Block_Form
     {
         return Mage::getSingleton('payment/pay');
     }
-    
-    /*
-     * Set Merchant for divido using api key
-     */
-    /*
-    //TODO REMOVE NOT NEEDED?
-    protected function _setMerchant()
-    {
-        $sdk = new \Divido\MerchantSDK\Client('test_cfabc123.querty098765merchantsdk12345', \Divido\MerchantSDK\Environment::SANDBOX);
-        Divido::setMerchant($this->getApiKey());
-        if ($this->getMethod()->getConfigData('sandbox')) {
-                Divido::setSandboxMode(true);
-        }
-    }
-    
-    protected function getCampaign()
-    {
-        $this->_setMerchant();
-        $response = Divido_Finances::all(array(
-                'merchant'=>$this->getApiKey(),
-        ));
-
-        return $response;
-    }
-    */
     
     protected function getCurrencySymbol()
     {

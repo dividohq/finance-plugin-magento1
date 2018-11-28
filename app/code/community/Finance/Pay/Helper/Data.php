@@ -1,13 +1,29 @@
 <?php
 
-require_once(Mage::getBaseDir('lib') . '/vendor/autoload.php');
+require_once Mage::getBaseDir('lib') . '/vendor/autoload.php';
 
 class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 {
     const CACHE_KEY_PLANS      = 'finance_plans';
     const CACHE_LIFETIME_PLANS = 3600;
 
-    public function getCurrentStore ()
+   /**
+    * Define environment function
+    *
+    *  @param [string] $key - The Divido API key.
+    */
+    function environments($key)
+    {
+        $array       = explode('_', $key);
+        $environment = strtoupper($array[0]);
+        if (constant("Divido\MerchantSDK\Environment::$environment") !== null ) {
+            return constant("Divido\MerchantSDK\Environment::$environment");
+        } else {
+            return false;
+        }
+    }
+
+    public function getCurrentStore()
     {
         if (! Mage::app()->getStore()->isAdmin()) {
             return null;
@@ -16,51 +32,56 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         $store_id = 0;
         if (strlen($code = Mage::getSingleton('adminhtml/config_data')->getStore())) {
             $store_id = Mage::getModel('core/store')->load($code)->getId();
-        }
-        elseif (strlen($code = Mage::getSingleton('adminhtml/config_data')->getWebsite())) {
+        } elseif (strlen($code = Mage::getSingleton('adminhtml/config_data')->getWebsite())) {
             $website_id = Mage::getModel('core/website')->load($code)->getId();
             $store_id = Mage::app()->getWebsite($website_id)->getDefaultStore()->getId();
         }
-
         return $store_id;
     }
 
-    public function getApiKey ()
+    public function getApiKey()
     {
         $store = $this->getCurrentStore();
         $apiKey = Mage::getStoreConfig('payment/pay/api_key', $store);
         if (empty($apiKey)) {
             Mage::log('API key not set', null, 'finance.log');
             return array();
-        }        
+        }
         $apiKey = Mage::helper('core')->decrypt($apiKey);
 
         return $apiKey;
     }
 
-    public function getAllPlans ()
+    public function getSdk()
+    {
+        $apiKey = $this->getApiKey();
+        $env = $this->environments($apiKey);
+        $sdk = new \Divido\MerchantSDK\Client($apiKey, $env);
+        return $sdk;
+    }
+
+    public function getAllPlans()
     {
         $apiKey = $this->getApiKey();
         $cacheKey = self::CACHE_KEY_PLANS . md5($apiKey);
+        $finances=array();
 
         $cache = Mage::app()->getCache();
         if ($plans = $cache->load($cacheKey)) {
             $plans = unserialize($plans);
             return $plans;
         }
-
-        $sdk = new \Divido\MerchantSDK\Client($apiKey, \Divido\MerchantSDK\Environment::SANDBOX);
+        $sdk = $this->getSdk();
         $requestOptions = (new \Divido\MerchantSDK\Handlers\ApiRequestOptions());
-        $plans = $sdk->getAllPlans($requestOptions);
-        $finances = $plans->getResources();
-
-        //TODO - Rework no status returned from call so catch if fails
-        /*
-        if ($response->status !== 'ok') {
-            Mage::log('Could not get financing plans.', null, 'finance.log');
+        try {
+            $plans = $sdk->getAllPlans($requestOptions);
+            $finances = $plans->getResources();
+        } catch (\Divido\MerchantSDK\Exceptions\MerchantApiBadResponseException $e) {
+            if (Mage::getStoreConfig('payment/pay/debug')) {
+                Mage::log('Could not get financing plans.:'.$e->getMessage(), null, 'finance.log');
+            }
             return array();
         }
-        */
         $cache->save(serialize($finances), $cacheKey, array('finance_cache'), self::CACHE_LIFETIME_PLANS);
 
         return $finances;
@@ -68,50 +89,58 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 
     public function getSingleApplication($applicationID)
     {
-        $apiKey = $this->getApiKey();
-
-        $sdk = new \Divido\MerchantSDK\Client($apiKey, \Divido\MerchantSDK\Environment::SANDBOX);
-        $application = $sdk->applications()->getSingleApplication($applicationID);
+        $sdk = $this->getSdk();
+        try {
+            $application = $sdk->applications()->getSingleApplication($applicationID);
+        } catch (\Divido\MerchantSDK\Exceptions\MerchantApiBadResponseException $e) {
+            if (Mage::getStoreConfig('payment/pay/debug')) {
+                Mage::log('Could not get Single Application:'.$e->getMessage(), null, 'finance.log');
+            }
+            return array();
+        }
+ 
 
         return $application;
     }
 
-    public function getSdk()
+
+    public function setFulfilled($applicationId, $shippingMethod = null, $trackingNumbers = null, $orderTotalInPence = null)
     {
-        $apiKey = $this->getApiKey();
-
-        $sdk = new \Divido\MerchantSDK\Client($apiKey, \Divido\MerchantSDK\Environment::SANDBOX);
-
-        return $sdk;
-    }
-
-
-    public function setFulfilled ($applicationId, $shippingMethod = null, $trackingNumbers = null, $orderTotalInPence = null)
-    {
-
+        Mage::log('setFulfilled Helper function', Zend_Log::DEBUG, 'finance.log', true);
         $application = (new \Divido\MerchantSDK\Models\Application())
-                ->withId($applicationId);
-            // Create a new application activation model.
+            ->withId($applicationId);
+        $items       = array(
+                    array(
+                        'name'     => "Magento Order id: $applicationId",
+                        'quantity' => 1,
+                        'price'    => $orderTotalInPence,
+                    ),
+                );
             $applicationActivation = (new \Divido\MerchantSDK\Models\ApplicationActivation())
+                ->withOrderItems($items)
                 ->withAmount($orderTotalInPence)
-                ->withReference('Magento Order')
+                ->withReference('Magento 1 Order')
                 ->withComment('Automatic activation activated.')
                 ->withDeliveryMethod($shippingMethod)
                 ->withTrackingNumber($trackingNumbers);
-            // Create a new activation for the application.
-                    //Temp Loggin
-              Mage::log('Application activateion', null, 'finance.log');
-            $sdk = $this->getSdk();
-            $response = $sdk->applicationActivations()->createApplicationActivation($application, $applicationActivation);
-            $activationResponseBody = $response->getBody()->getContents();
 
+                // Create a new activation for the application.
+                $sdk = $this->getSdk();
+        try {
+                    $response = $sdk->applicationActivations()->createApplicationActivation($application, $applicationActivation);
+                    $activationResponseBody = $response->getBody()->getContents();
+        } catch (\Divido\MerchantSDK\Exceptions\MerchantApiBadResponseException $e) {
+            if (Mage::getStoreConfig('payment/pay/debug')) {
+                Mage::log('Could not Activate Application:'.$e->getMessage(), null, 'finance.log');
+            }
+            return array();
+        }
     }
 
 
     public function getCommonApiKey()
     {
         $apiKey = $this->getApiKey();
-
         $keyParts = explode('.', $apiKey);
         $commonKey = array_shift($keyParts);
         $normalized = strtolower($commonKey);
@@ -134,14 +163,14 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         return $html;
     }
 
-    public function isActiveGlobal ()
+    public function isActiveGlobal()
     {
         $globalActive = Mage::getStoreConfig('payment/pay/active');
 
         return (bool) $globalActive;
     }
 
-    public function isActiveLocal ($product, $price = null)
+    public function isActiveLocal($product, $price = null)
     {
         $globalActive = $this->isActiveGlobal();
 
@@ -169,11 +198,10 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
                     return false;
                 }
         }
-
         return true;
     }
 
-    public function getQuotePlans ($quote)
+    public function getQuotePlans($quote)
     {
         if (! $quote) {
             return null;
@@ -200,7 +228,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 
         return $plans;
     }
-    public function getLocalPlans ($product)
+    public function getLocalPlans($product)
     {
         // Get Global product settings
         $globalProdOptions = Mage::getStoreConfig('payment/pay/product_options');
@@ -226,12 +254,12 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         return $plans;
     }
 
-    public function getGlobalSelectedPlans ()
+    public function getGlobalSelectedPlans()
     {
-        // Get all finance plans
+        // Get all finance plans.
         $allPlans = $this->getAllPlans();
 
-        // Get system settings 
+        // Get system settings. 
         $globalPlansDisplayed = Mage::getStoreConfig('payment/pay/finances_displayed');
         $globalPlanList       = Mage::getStoreConfig('payment/pay/finances_list');
         $globalPlanList       = ! empty($globalPlanList) ? explode(',', $globalPlanList) : null;
@@ -240,7 +268,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
             return $allPlans;
         }
 
-        // Only showing selected finance plans
+        // Only showing selected finance plans.
         $plans = array();
         foreach ($allPlans as $plan) {
             if (in_array($plan->id, $globalPlanList)) {
@@ -251,18 +279,20 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         return $plans;
     }
 
-    public function plans2list ($plans)
+    public function plans2list($plans)
     {
-        $plansBare = array_map(function ($plan) {
-            return $plan->id;
-        }, $plans);
+        $plansBare = array_map(
+            function ($plan) {
+                return $plan->id;
+            }, $plans
+        );
 
         $plansBare = array_unique($plansBare);
 
         return implode(',', $plansBare);
     }
 
-    public function hashQuote ($salt, $quote_id)
+    public function hashQuote($salt, $quote_id)
     {
         return hash('sha256', $salt.$quote_id);
     }
@@ -291,7 +321,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $option = $this->getWidgetOption();
         if ($option=='popup_widget') {
-            //TODO - Change for WL
+            //TODO - Update per client
             return 'data-divido-mode="popup"';
         }
         return;

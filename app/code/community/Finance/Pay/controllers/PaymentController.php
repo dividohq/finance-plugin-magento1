@@ -257,15 +257,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         if (Mage::getStoreConfig('payment/pay/debug')) {
             Mage::log('Request: ' . json_encode($application), Zend_Log::DEBUG, 'finance.log', true);
         }
-        $response = $sdk->applications()->createApplication($application);
-        $applicationResponseBody = $response->getBody()->getContents();
-
-        if (Mage::getStoreConfig('payment/pay/debug')) {
-            Mage::log('Response: ' . serialize($applicationResponseBody), Zend_Log::DEBUG, 'finance.log', true);
-        }
-        $decode = json_decode($applicationResponseBody);
-        //TODO - Re add error checking
-        if (isset($decode->data->id)) {
+        try {
+            $response = $sdk->applications()->createApplication($application);
+            $applicationResponseBody = $response->getBody()->getContents();
             $lookup = Mage::getModel('callback/lookup');
             $lookup->setQuoteId($quote_id);
             $lookup->setSalt($salt);
@@ -279,18 +273,21 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             $lookup->setCustomerCheckout($checkout_type);
 
             if (Mage::getStoreConfig('payment/pay/debug')) {
-                Mage::log('Lookup: ' . json_encode($lookup->getData()), Zend_Log::DEBUG, 'finance.log', true);
+                Mage::log('Response: ' . serialize($applicationResponseBody), Zend_Log::DEBUG, 'finance.log', true);
             }
 
+            if (Mage::getStoreConfig('payment/pay/debug')) {
+                Mage::log('Lookup: ' . json_encode($lookup->getData()), Zend_Log::DEBUG, 'finance.log', true);
+            }
+    
             $lookup->save();
             $this->getResponse()->setRedirect($decode->data->urls->application_url);
             return;
-        } else {
-            //TODO - previously checked for error status
-            //if ($response->status === 'error') {
-                Mage::getSingleton('checkout/session')->addError($decode);
-                $this->_redirect('checkout/cart');
-            //}
+        } catch (\Divido\MerchantSDK\Exceptions\MerchantApiBadResponseException $e) {
+            Mage::log('Payment Failed: ' . $e->getMessage(), Zend_Log::DEBUG, 'finance.log', true);
+            $applicationResponseBody = $e->getMessage();
+            Mage::getSingleton('checkout/session')->addError($e->getMessage());
+            $this->_redirect('checkout/cart');
         }
     }
 

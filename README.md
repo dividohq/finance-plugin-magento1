@@ -1,5 +1,12 @@
 # Finance Plugin
-Finance Plugin for Magento
+Finance Plugin for Magento 
+
+# Rebranding Instructions
+
+The plugin in this format is designed to be rebranded to your individual requirements.
+
+The intention is for your developers to Fork this repository and make any specific adjustments.
+
 
 
 ## Uninstallation
