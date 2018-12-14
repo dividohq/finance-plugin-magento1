@@ -152,9 +152,9 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $scriptTags = [];
         $key = $this->getCommonApiKey();
-        //TODO - Does this change whitelable?
+        //TODO - Change this value
         $scriptTags[] = '<script>window.dividoKey = "' . $key . '";</script>';
-        //TODO - Does this change whitelable?
+        //TODO - Change this url
         $url = 'https://cdn.divido.com/calculator/v2.1/production/js/template.divido.js';
         $scriptTags[] = '<script src="' . $url . '"></script>';
 

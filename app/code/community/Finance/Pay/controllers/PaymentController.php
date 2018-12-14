@@ -127,9 +127,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             $existing_lookup->save();
             $existing_lookup_id = null;
         }
-        //TODO Do these values need to change
+        //TODO  Change fron divido_depost to name_deposit
         $deposit_percentage  = $this->getRequest()->getParam('divido_deposit') / 100;
-        //TODO Do these need to change
+        //TODO  Change this from divido_plan to whatever plan
         $finance  = $this->getRequest()->getParam('divido_plan');
         $language = strtoupper(substr(Mage::getStoreConfig('general/locale/code', Mage::app()->getStore()->getId()),0,2));
         $currency = Mage::app()->getStore()->getCurrentCurrencyCode();
@@ -338,9 +338,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         $payload = file_get_contents('php://input');
         $this->debug('Update: ' . $payload);
-
-        //TODO - FIX Missing from SDK cant grab from divido
-        /*
+        
         $secretEnc = Mage::getStoreConfig('payment/pay/secret');
         if (!empty($secretEnc)) {
             $reqSign = $this->getRequest()->getHeader('X-DIVIDO-HMAC-SHA256');
@@ -350,7 +348,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 return $this->respond(false, 'invalid signature', true);
             }
         }
-        */
 
         $data = json_decode($payload);
         $this->quoteId = $data->metadata->quote_id;
@@ -680,19 +677,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
     {
         return Mage::getSingleton('customer/session');
     }
-
-    //TODO Remove?
-    /**
-     * Get frontend checkout session object
-     *
-     * @return Mage_Checkout_Model_Session
-     */
-    /*
-    public function getCheckout()
-    {
-        return $this->_checkoutSession;
-    }
-    */
 
     /**
      * Quote object getter
