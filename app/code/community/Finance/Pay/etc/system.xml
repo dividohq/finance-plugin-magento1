@@ -71,7 +71,6 @@
                                 <show_in_store>0</show_in_store>
                                 <sort_order>6</sort_order>
                             </countries_allowed>
-
                         <heading_finance translate="label">
                             <label>Finance/Product Settings</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
@@ -124,7 +123,6 @@
                                 <show_in_store>0</show_in_store>
                                 <sort_order>12</sort_order>
                             </product_price_treshold>
-
                         <heading_widget translate="label">
                             <label>Widget Settings</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
@@ -155,7 +153,6 @@
                                     </product_page_widget>
                                 </depends>
                             </catalog_product_calculator_type>
-
                         <heading_order translate="label">
                             <label>Order Settings</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
@@ -207,7 +204,6 @@
                                     </fulfilment_update>
                                 </depends>
                             </fulfilment_order_status>
-                       
                         <heading_developer translate="label">
                             <label>Developer Settings</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
