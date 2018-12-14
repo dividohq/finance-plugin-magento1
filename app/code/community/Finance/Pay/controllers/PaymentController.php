@@ -81,11 +81,11 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         //Divido::setMerchant($apiKey);
         //TODO - No Shared Secret in Merchant SDK
-        /*
+        
         if (! empty($sharedSecret)) {
             Divido::setSharedSecret($sharedSecret);
         }
-        */
+        
         $quote_cart         = Mage::getModel('checkout/cart')->getQuote();
 
         $checkout_session   = Mage::getSingleton('checkout/session');
@@ -126,7 +126,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             $existing_lookup_id = null;
         }
         //TODO  Change fron divido_depost to name_deposit
-        $deposit_percentage  = $this->getRequest()->getParam('divido_deposit') / 100;
+        $deposit_percentage  = $this->getRequest()->getParam('divido_deposit');
         //TODO  Change this from divido_plan to whatever plan
         $finance  = $this->getRequest()->getParam('divido_plan');
         $language = strtoupper(
@@ -144,11 +144,11 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $addressPostcode = $billing['postcode'];
         $addressCity     = $billing['city'];
         $addressText     = implode(' ', array($addressStreet,$addressCity,$addressPostcode));
-
         $shippingAddressStreet   = str_replace("\n", " ", $shipping['street']);
         $shippingAddressPostcode = $shipping['postcode'];
         $shippingAddressCity     = $shipping['city'];
-        
+        $shippingAddressText     = implode(' ', array($shippingAddressStreet,$shippingAddressCity,$shippingAddressPostcode));
+
         $postcode   = $shipping['postcode'];
         $telephone  = $shipping['telephone'];
         $firstname  = $shipping['firstname'];
@@ -202,6 +202,8 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'buildingNumber'    => '',
             'buildingName'      => '',
             'town'              => $shippingAddressCity,
+            'text'              => $shippingAddressText,
+
         );
 
         $address = array(
@@ -245,7 +247,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         ->withFinancePlanId($finance)
         ->withApplicants([$customer])
         ->withOrderItems($products)
-        ->withDepositPercentage($deposit)
+        ->withDepositPercentage($deposit_percentage)
         ->withFinalisationRequired(false)
         ->withUrls([
             'merchant_redirect_url' => Mage::getUrl('pay/payment/return', array('quote_id' => $quote_id)),
@@ -260,6 +262,8 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         try {
             $response = $sdk->applications()->createApplication($application);
             $applicationResponseBody = $response->getBody()->getContents();
+            $decode = json_decode($applicationResponseBody);
+
             $lookup = Mage::getModel('callback/lookup');
             $lookup->setQuoteId($quote_id);
             $lookup->setSalt($salt);
