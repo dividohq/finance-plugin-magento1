@@ -102,12 +102,10 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $existingCRId = $existing_lookup->getData('credit_request_id');
         //TODO - check to see if application already exists
         if ($existing_lookup_id && $existingCRId) {
-
             $lookupTotalAmount = $existing_lookup->getData('total_order_amount');
             $is_cancelled = $existing_lookup->getCanceled();
             $is_declined = $existing_lookup->getDeclined();
             if ($grand_total == $lookupTotalAmount && !$is_cancelled && !$is_declined) {
-
                 try {
                     $application = Mage::helper('finance_pay')->getSingleApplication($existingCRId);
                     //var_dump($application);
@@ -119,8 +117,8 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                         }
                     }
                 } catch (Excetption $e) {
-                    Mage::log($e->getMessage() , Zend_Log::ERROR, 'finance.log', true);
-                 }
+                    Mage::log($e->getMessage(), Zend_Log::ERROR, 'finance.log', true);
+                }
             }
 
             $existing_lookup->setInvalidatedAt(date(DATE_ATOM));
@@ -131,7 +129,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $deposit_percentage  = $this->getRequest()->getParam('divido_deposit') / 100;
         //TODO  Change this from divido_plan to whatever plan
         $finance  = $this->getRequest()->getParam('divido_plan');
-        $language = strtoupper(substr(Mage::getStoreConfig('general/locale/code', Mage::app()->getStore()->getId()),0,2));
+        $language = strtoupper(
+            substr(Mage::getStoreConfig('general/locale/code', Mage::app()->getStore()->getId()), 0, 2)
+        );
         $currency = Mage::app()->getStore()->getCurrentCurrencyCode();
 
         $shipAddr   = $quote_session->getShippingAddress();
@@ -291,7 +291,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         }
     }
 
-    public function returnAction ()
+    public function returnAction()
     {
         $session = Mage::getSingleton('checkout/session');
         $quoteId = $this->getRequest()->getParam('quote_id');
@@ -328,9 +328,8 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $this->_redirect('checkout/onepage/success');
     }
 
-    public function webhookAction ()
+    public function webhookAction()
     {
-
         $createStatus = self::STATUS_ACCEPTED;
         if (Mage::getStoreConfig('payment/pay/order_create_signed')) {
             $createStatus = self::STATUS_SIGNED;
@@ -437,7 +436,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             }
 
             try {
-
                 $quote_service->submitAll();
                 $quote->save();
 
@@ -463,7 +461,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         }
 
         $orderId = $order->getId();
-
 
         $lookupTotalAmount = (float) $lookup->getData('total_order_amount');
         $orderGrandTotal = (float) $order->getGrandTotal();
@@ -500,10 +497,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $order->save();
 
         return $this->respond();
-
     }
 
-    private function debug ($msg)
+    private function debug($msg)
     {
         $debug = Mage::getStoreConfig('payment/pay/debug');
         if (! $debug) {
@@ -511,9 +507,9 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         }
 
         $this->log($msg, Zend_Log::DEBUG);
-    }  
+    }
 
-    private function log ($msg, $level = Zend_log::WARN)
+    private function log($msg, $level = Zend_log::WARN)
     {
         if (empty($this->logId)) {
             $this->logId = (string) microtime(true);
@@ -536,11 +532,11 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         Mage::log($msg, $level, self::LOG_FILE, true);
     }
 
-    private function respond ($ok = true, $message = '', $bad_reqeust = false)
+    private function respond($ok = true, $message = '', $bad_reqeust = false)
     {
         $response = $this->getResponse()
             ->clearHeaders()
-            ->setHeader('Content-type','application/json', true);
+            ->setHeader('Content-type', 'application/json', true);
 
         $pluginVersion = (string) Mage::getConfig()->getModuleConfig("Finance_Pay")->version;
 
