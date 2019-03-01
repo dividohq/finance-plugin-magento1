@@ -128,10 +128,10 @@ $lookup_table->addColumn(
 $conn->createTable($lookup_table);
 
 /**
- * Adding Divido attributes to products
+ * Adding Finance attributes to products
  */
 
-$groupName        = 'Divido';
+$groupName        = 'Finance';
 $entityTypeId     = $setup->getEntityTypeId('catalog_product');
 $defaultAttrSetId = $setup->getDefaultAttributeSetId($entityTypeId);
 

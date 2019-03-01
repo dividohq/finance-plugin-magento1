@@ -7,7 +7,14 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     const CACHE_KEY_PLANS      = 'finance_plans';
     const CACHE_LIFETIME_PLANS = 3600;
 
-   /**
+    public  $financeEnvironment;
+
+    public function __construct()
+    {
+        //$this->financeEnvironment = $this->getFinanceEnvironment();
+    }
+
+    /**
     * Define environment function
     *
     *  @param [string] $key - The API key.
@@ -56,7 +63,14 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $apiKey = $this->getApiKey();
         $env = $this->environments($apiKey);
-        $sdk = new \Divido\MerchantSDK\Client($apiKey, $env);
+        $client = new \GuzzleHttp\Client();
+        $httpClientWrapper = new \Divido\MerchantSDK\HttpClient\HttpClientWrapper(
+            new \Divido\MerchantSDKGuzzle6\GuzzleAdapter($client),
+            \Divido\MerchantSDK\Environment::CONFIGURATION[$env]['base_uri'],
+            $apiKey
+        );
+        
+        $sdk = new \Divido\MerchantSDK\Client($httpClientWrapper, $env);
         return $sdk;
     }
 
@@ -74,6 +88,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         $sdk = $this->getSdk();
         $requestOptions = (new \Divido\MerchantSDK\Handlers\ApiRequestOptions());
         try {
+            
             $plans = $sdk->getAllPlans($requestOptions);
             $finances = $plans->getResources();
         } catch (\Divido\MerchantSDK\Exceptions\MerchantApiBadResponseException $e) {
@@ -152,10 +167,9 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $scriptTags = [];
         $key = $this->getCommonApiKey();
-        //TODO - Change this value
-        $scriptTags[] = '<script>window.dividoKey = "' . $key . '";</script>';
-        //TODO - Change this url
-        $url = 'https://cdn.divido.com/calculator/v2.1/production/js/template.divido.js';
+        $this->financeEnvironment;
+        $scriptTags[] = '<script>window.'.$this->financeEnvironment.'Key = "' . $key . '";</script>';
+        $url = 'https://cdn.divido.com/calculator/v2.1/production/js/template.'.$this->financeEnvironment.'.js';
         $scriptTags[] = '<script src="' . $url . '"></script>';
 
         $html = implode("\n", $scriptTags);
@@ -321,9 +335,24 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $option = $this->getWidgetOption();
         if ($option=='popup_widget') {
-            //TODO - Update per client
-            return 'data-divido-mode="popup"';
+            return 'data-'.$this->financeEnvironment.'-mode="popup"';
         }
         return;
+    }
+
+    public function getFinanceEnvironment()
+    {
+        $this->financeEnvironment='divido';
+        try {
+            $sdk = $this->getSdk();
+            $response = $sdk->platformEnvironments()->getPlatformEnvironment();
+            $finance_env = $response->getBody()->getContents();
+            $decoded =json_decode($finance_env);
+            $financeEnvironment = $decoded->data->environment;
+        } catch (Exception $e) {
+            //add log
+        }
+           
+        return $financeEnvironment;
     }
 }
