@@ -1,7 +1,7 @@
 <?php
 class Finance_Pay_Model_Source_Option extends Mage_Eav_Model_Entity_Attribute_Source_Table
 {
-    public function getAllOptions ()
+    public function getAllOptions ($withEmpty = true, $defaultValues = false)
     {
         if (! $this->_options) {
             $this->_options = array(
@@ -17,5 +17,5 @@ class Finance_Pay_Model_Source_Option extends Mage_Eav_Model_Entity_Attribute_So
         }
 
         return $this->_options;
-    }   
+    }
 }

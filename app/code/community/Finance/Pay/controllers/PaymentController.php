@@ -70,6 +70,19 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
     }
 
     /**
+	 * Create HMAC SIGNATURE.
+	 *
+	 * @param  [string] $payload Payload value.
+	 * @param  [string] $secret  The secret value saved on Finance portal and WordPress.
+	 * @return string Returns a base64 encoded string.
+	*/
+		public function create_signature( $payload, $secret ) {
+			$hmac      = hash_hmac( 'sha256', $payload, $secret, true );
+			$signature = base64_encode( $hmac );
+			return $signature;
+		}
+
+    /**
      * Start Standard Checkout and dispatching customer to Finance provider
      */
     public function startAction()
@@ -79,13 +92,6 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $secretEnc      = Mage::getStoreConfig('payment/pay/secret');
         $secret         = Mage::helper('core')->decrypt($secretEnc);
 
-        //Divido::setMerchant($apiKey);
-        //TODO - No Shared Secret in Merchant SDK
-        
-        if (! empty($sharedSecret)) {
-            Divido::setSharedSecret($sharedSecret);
-        }
-        
         $quote_cart         = Mage::getModel('checkout/cart')->getQuote();
 
         $checkout_session   = Mage::getSingleton('checkout/session');
@@ -260,7 +266,10 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             Mage::log('Request: ' . json_encode($application), Zend_Log::DEBUG, 'finance.log', true);
         }
         try {
-            $response = $sdk->applications()->createApplication($application);
+            if ( '' !== $secret ) {
+                $secret = $this->create_signature($this->secret);
+            }
+            $response = $sdk->applications()->createApplication($application,[ 'X-Divido-Hmac-Sha256' => $secret ]);
             $applicationResponseBody = $response->getBody()->getContents();
             $decode = json_decode($applicationResponseBody);
 
@@ -344,6 +353,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         
         $secretEnc = Mage::getStoreConfig('payment/pay/secret');
         if (!empty($secretEnc)) {
+            //TODO X-DIVIDO May Change
             $reqSign = $this->getRequest()->getHeader('X-DIVIDO-HMAC-SHA256');
             $signature = Mage::helper('finance_pay')->createSignature($payload);
             if ($reqSign !== $signature) {

@@ -10,7 +10,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
    /**
     * Define environment function
     *
-    *  @param [string] $key - The Divido API key.
+    *  @param [string] $key - The API key.
     */
     function environments($key)
     {
