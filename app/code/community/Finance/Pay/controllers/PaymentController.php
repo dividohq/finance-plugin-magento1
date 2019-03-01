@@ -131,9 +131,7 @@ class Finance_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             $existing_lookup->save();
             $existing_lookup_id = null;
         }
-        //TODO  Change fron divido_depost to name_deposit
         $deposit_percentage  = $this->getRequest()->getParam('divido_deposit');
-        //TODO  Change this from divido_plan to whatever plan
         $finance  = $this->getRequest()->getParam('divido_plan');
         $language = strtoupper(
             substr(Mage::getStoreConfig('general/locale/code', Mage::app()->getStore()->getId()), 0, 2)

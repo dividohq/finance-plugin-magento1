@@ -83,7 +83,6 @@ class Finance_Pay_Model_Standard extends Mage_Payment_Model_Method_Abstract
      */
     public function getCheckoutRedirectUrl()
     {
-        //TODO - CHANGE 
 		$deposit = $_POST['divido_deposit'];
 		$finance = $_POST['divido_plan'];
 
