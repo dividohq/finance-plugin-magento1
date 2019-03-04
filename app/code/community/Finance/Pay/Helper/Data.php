@@ -11,7 +11,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 
     public function __construct()
     {
-        //$this->financeEnvironment = $this->getFinanceEnvironment();
+        $this->financeEnvironment = $this->getFinanceEnvironment();
     }
 
     /**

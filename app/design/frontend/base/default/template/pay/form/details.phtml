@@ -3,9 +3,11 @@ $_code      = $this->getMethodCode();
 $quote      = Mage::getSingleton('checkout/cart')->getQuote();
 $plans      = Mage::helper('finance_pay')->getQuotePlans($quote);
 $planList   = Mage::helper('finance_pay')->plans2list($plans);
+$financeEnvironment =  Mage::helper('finance_pay')->financeEnvironment;
 $grandTotal = $quote->getGrandTotal();
 //TODO - This Changes for whitelabel
 ?>
+<?php echo $financeEnvironment ?>
 <div id="payment_form_<?php echo $_code ?>" style="display:none;">
     <fieldset id="divido-checkout" data-divido-calculator class="divido-calculator divido-theme-blue" data-divido-amount="<?php echo $grandTotal; ?>" data-divido-plans="<?php echo $planList; ?>" data-divido-filter-plans="1">
         <div data-divido-widget data-divido-plans="<?php echo $plansList; ?>" data-divido-amount="<?php echo $grandTotal; ?>"><div>
