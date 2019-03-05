@@ -13,7 +13,7 @@ class Finance_Pay_Model_Source_Defaultprodplans extends Mage_Eav_Model_Entity_At
         foreach ($plans as $plan) {
             $this->_options[] = array(
                 'value' => $plan->id,
-                'label' => $plan->text,
+                'label' => $plan->description,
             );
         }
 
