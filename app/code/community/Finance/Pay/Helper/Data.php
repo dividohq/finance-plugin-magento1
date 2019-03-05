@@ -91,6 +91,7 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
             
             $plans = $sdk->getAllPlans($requestOptions);
             $finances = $plans->getResources();
+
         } catch (\Divido\MerchantSDK\Exceptions\MerchantApiBadResponseException $e) {
             if (Mage::getStoreConfig('payment/pay/debug')) {
                 Mage::log('Could not get financing plans.:'.$e->getMessage(), null, 'finance.log');
