@@ -191,7 +191,7 @@
                             </fulfilment_update>
                             <fulfilment_order_status translate="label">
                                 <label>Fulfilment Status</label>
-                                <tooltip>Choose the statyus</tooltip>
+                                <tooltip>Choose the status</tooltip>
                                 <frontend_type>select</frontend_type>
                                 <source_model>adminhtml/system_config_source_order_status</source_model>
                                 <show_in_default>1</show_in_default>
