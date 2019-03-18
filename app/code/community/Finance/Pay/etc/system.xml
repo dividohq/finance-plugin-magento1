@@ -181,7 +181,7 @@
                             </order_create_signed>
                             <fulfilment_update translate="label">
                                 <label>Automatic Fulfilment </label>
-                                <tooltip>When and orders reaches a certain status, send an fulfilment request.</tooltip>
+                                <tooltip>When an orders reaches a certain status, send an fulfilment request.</tooltip>
                                 <frontend_type>select</frontend_type>
                                 <source_model>adminhtml/system_config_source_yesno</source_model>
                                 <show_in_default>1</show_in_default>
