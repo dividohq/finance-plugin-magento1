@@ -87,7 +87,7 @@ class Finance_Pay_Block_Widget extends Mage_Core_Block_Template
             $this->price = $incTax;
         }
 
-        return $this->price;
+        return $this->price * 100;
     }
 
     public function getPlans ()

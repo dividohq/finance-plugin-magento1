@@ -3,6 +3,13 @@
 <?php $financeEnvironment =  Mage::helper('finance_pay')->financeEnvironment; ?>
 
 <div class="divido-widget">
-    <div data-<?php echo $financeEnvironment ?>-widget <?php echo $this->popupOrNot(); ?> data-<?php echo $financeEnvironment ?>-plans="<?php echo $this->getPlans(); ?>" data-<?php echo $financeEnvironment ?>-amount="<?php echo $this->getPrice(); ?>"></div>
+    <div id="financeCalculator" data-calculator-widget 
+    <?php echo $this->popupOrNot(); ?>
+    data-plans="<?php echo $this->getPlans(); ?>" 
+    data-amount="<?php echo $this->getPrice(); ?>" ></div>
 </div>
 <?php endif; ?>
+<script>
+//<![CDATA[
+//]]>
+</script>

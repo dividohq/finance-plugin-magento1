@@ -9,6 +9,13 @@
             </block>
             <action method="addCss"><stylesheet>css/Finance/finance.css</stylesheet></action>
         </reference> 
+            <reference name="footer">
+            <block type="core/text" name="divido.base">
+                <action method="setText">
+                    <text helper="finance_pay/getScriptTags2" />
+                </action>
+            </block>
+        </reference> 
     </default>
     <catalog_product_view translate="label">
         <reference name="content">

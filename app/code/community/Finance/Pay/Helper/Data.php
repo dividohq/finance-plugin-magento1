@@ -167,12 +167,30 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     public function getScriptTags()
     {
         $scriptTags = [];
+        $this->financeEnvironment;
+        //$url = '//cdn.divido.com/widget/dist/'.$this->financeEnvironment.'.calculator.js';
+ 
+    
+        //$scriptTags[] = '<script  src="' . $url . '"></script>';
+
+        $html = implode("\n", $scriptTags);
+
+        return $html;
+    }
+
+    public function getScriptTags2()
+    {
+        $scriptTags = [];
         $key = $this->getCommonApiKey();
         $this->financeEnvironment;
-        $scriptTags[] = '<script>window.'.$this->financeEnvironment.'Key = "' . $key . '";</script>';
-        $url = 'https://cdn.divido.com/calculator/v2.1/production/js/template.'.$this->financeEnvironment.'.js';
+        $url = 'https://cdn.divido.com/widget/dist/'.$this->financeEnvironment.'.calculator.js';
+        $scriptTags[] = '<script type="text/javascript"> 
+        //<![CDATA[  
+           window.__widgetConfig = { apiKey:\'' . $key . '\',};
+           //]]>
+        </script>';
         $scriptTags[] = '<script src="' . $url . '"></script>';
-
+       
         $html = implode("\n", $scriptTags);
 
         return $html;
@@ -336,9 +354,9 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $option = $this->getWidgetOption();
         if ($option=='popup_widget') {
-            return 'data-'.$this->financeEnvironment.'-mode="popup"';
+            return 'data-mode="lightbox"';
         }
-        return;
+        return 'data-mode="calculator"';
     }
 
     public function getFinanceEnvironment()

@@ -9,12 +9,18 @@ $grandTotal = $quote->getGrandTotal();
 
 <div id="payment_form_<?php echo $_code ?>" style="display:none;">
     <fieldset id="divido-checkout" data-<?php echo $financeEnvironment ?>-calculator class="divido-calculator divido-theme-blue" data-<?php echo $financeEnvironment ?>-amount="<?php echo $grandTotal; ?>" data-<?php echo $financeEnvironment ?>-plans="<?php echo $planList; ?>" data-<?php echo $financeEnvironment ?>-filter-plans="1">
-        <div data-<?php echo $financeEnvironment ?>-widget data-<?php echo $financeEnvironment ?>-plans="<?php echo $plansList; ?>" data-<?php echo $financeEnvironment ?>-amount="<?php echo $grandTotal; ?>"><div>
+        <div id="financeWidget"  
+            data-calculator-widget 
+            data-mode="calculator"  
+            data-plans="<?php echo $plansList; ?>" 
+            data-amount="<?php echo $grandTotal; ?>" 
+        >
+    </div>
+
     </fieldset>
 </div>
 
 <script>
 //<![CDATA[
-TemplateCalculator.reload(); 
 //]]>
 </script>
