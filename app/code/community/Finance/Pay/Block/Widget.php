@@ -108,4 +108,10 @@ class Finance_Pay_Block_Widget extends Mage_Core_Block_Template
         $popupAttribute   = Mage::helper('finance_pay')->returnWidgetHtml();
         return $popupAttribute;
     }
+
+    public function getApiKey()
+    {
+        $key   = Mage::helper('finance_pay')->getCommonApiKey();
+        return $key;
+    }
 }

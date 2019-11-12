@@ -169,8 +169,13 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         $scriptTags = [];
         $this->financeEnvironment;
         //$url = '//cdn.divido.com/widget/dist/'.$this->financeEnvironment.'.calculator.js';
- 
-    
+        $key = $this->getCommonApiKey();
+
+        $scriptTags[] = '<script type="text/javascript"> 
+        //<![CDATA[  
+           window.__widgetConfig = { apiKey:\'' . $key . '\',};
+           //]]>
+        </script>';
         //$scriptTags[] = '<script  src="' . $url . '"></script>';
 
         $html = implode("\n", $scriptTags);
@@ -183,14 +188,15 @@ class Finance_Pay_Helper_Data extends Mage_Core_Helper_Abstract
         $scriptTags = [];
         $key = $this->getCommonApiKey();
         $this->financeEnvironment;
-        $url = 'https://cdn.divido.com/widget/dist/'.$this->financeEnvironment.'.calculator.js';
+        $url1 = 'https://cdn.divido.com/widget/dist/'.$this->financeEnvironment.'.calculator.js';
+        $scriptTags[] = '<script src="' . $url1 . '"></script>';
+        $url = 'http://localhost/js/prototype/prototype.js';
+        $scriptTags[] = '<script src="' . $url . '"></script>';
         $scriptTags[] = '<script type="text/javascript"> 
         //<![CDATA[  
            window.__widgetConfig = { apiKey:\'' . $key . '\',};
            //]]>
         </script>';
-        $scriptTags[] = '<script src="' . $url . '"></script>';
-       
         $html = implode("\n", $scriptTags);
 
         return $html;

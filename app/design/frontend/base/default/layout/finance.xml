@@ -4,7 +4,7 @@
         <reference name="head">
             <block type="core/text" name="divido.base">
                 <action method="setText">
-                    <text helper="finance_pay/getScriptTags" />
+                    <text helper="finance_pay/getScriptTags2" />
                 </action>
             </block>
             <action method="addCss"><stylesheet>css/Finance/finance.css</stylesheet></action>
@@ -12,7 +12,7 @@
             <reference name="footer">
             <block type="core/text" name="divido.base">
                 <action method="setText">
-                    <text helper="finance_pay/getScriptTags2" />
+                    <text helper="finance_pay/getScriptTags" />
                 </action>
             </block>
         </reference> 
